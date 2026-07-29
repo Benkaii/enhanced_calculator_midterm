@@ -2,7 +2,13 @@ import pandas as pd
 import pytest
 from unittest.mock import patch
 
-from app.calculator_repl import Calculator, CalculatorObserver, main
+from app.calculator_repl import (
+    AutoSaveObserver,
+    Calculator,
+    LoggingObserver,
+    main,
+)
+from app.logger import setup_logger
 
 
 def test_calculator_initializes():
@@ -16,7 +22,7 @@ def test_calculator_initializes():
 
 def test_add_observer():
     calculator = Calculator()
-    observer = CalculatorObserver()
+    observer = AutoSaveObserver()
 
     calculator.add_observer(observer)
 
@@ -29,7 +35,7 @@ def test_observer_auto_save_enabled(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTO_SAVE", "true")
 
     calculator = Calculator()
-    observer = CalculatorObserver()
+    observer = AutoSaveObserver()
 
     calculator.execute_calculation("add", "2", "3")
     observer.update(calculator)
@@ -43,7 +49,7 @@ def test_observer_auto_save_disabled(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTO_SAVE", "false")
 
     calculator = Calculator()
-    observer = CalculatorObserver()
+    observer = AutoSaveObserver()
 
     calculator.execute_calculation("add", "2", "3")
     observer.update(calculator)
@@ -57,12 +63,31 @@ def test_notify_observers(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTO_SAVE", "true")
 
     calculator = Calculator()
-    calculator.add_observer(CalculatorObserver())
+    calculator.add_observer(AutoSaveObserver())
 
     calculator.execute_calculation("add", "2", "3")
 
     assert file_path.exists()
 
+def test_logging_observer(tmp_path):
+    log_file = tmp_path / "calculator.log"
+
+    logger = setup_logger(str(log_file))
+
+    calculator = Calculator()
+    calculator.add_observer(LoggingObserver(logger))
+
+    calculator.execute_calculation("add", "2", "3")
+
+    for handler in logger.handlers:
+        handler.flush()
+
+    assert log_file.exists()
+
+    contents = log_file.read_text()
+
+    assert "Operation: add" in contents
+    assert "Result: 5.0" in contents
 
 def test_show_help(capsys):
     calculator = Calculator()

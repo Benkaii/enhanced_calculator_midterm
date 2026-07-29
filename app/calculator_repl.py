@@ -4,10 +4,29 @@ from app.calculator_memento import CalculatorCaretaker, CalculatorMemento
 from app.exceptions import CalculatorError
 from app.history import CalculationHistory
 from app.input_validators import InputValidator
+from app.logger import setup_logger
 
 
-class CalculatorObserver:
-    """Observer that reacts to calculation events."""
+class LoggingObserver:
+    """Logs each completed calculation."""
+
+    def __init__(self, logger):
+        self.logger = logger
+
+    def update(self, calculator):
+        latest_record = calculator.history.get_history().iloc[-1]
+
+        self.logger.info(
+            "Operation: %s, Operand A: %s, Operand B: %s, Result: %s",
+            latest_record["operation"],
+            latest_record["a"],
+            latest_record["b"],
+            latest_record["result"],
+        )
+
+
+class AutoSaveObserver:
+    """Automatically saves history after a calculation."""
 
     def update(self, calculator):
         if calculator.config.is_auto_save_enabled():
@@ -131,7 +150,6 @@ class Calculator:
                 print("Goodbye!")
                 break
 
-            # LBYL: check whether the command is known before acting
             if InputValidator.is_valid_command(command):
                 self.handle_command(command)
                 continue
@@ -141,7 +159,6 @@ class Calculator:
                 continue
 
             try:
-                # EAFP: attempt the calculation and handle errors if needed
                 first_value = input("Enter first number: ")
                 second_value = input("Enter second number: ")
 
@@ -159,7 +176,11 @@ class Calculator:
 
 def main():
     calculator = Calculator()
-    calculator.add_observer(CalculatorObserver())
+
+    logger = setup_logger()
+    calculator.add_observer(LoggingObserver(logger))
+    calculator.add_observer(AutoSaveObserver())
+
     calculator.run()
 
 

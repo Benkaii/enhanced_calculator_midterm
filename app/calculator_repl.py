@@ -33,7 +33,10 @@ class Calculator:
 
     def show_help(self):
         print("\nCommands:")
-        print("add, subtract, multiply, divide, power, root")
+        print(
+            "add, subtract, multiply, divide, power, root, "
+            "modulus, int_divide, percent, abs_diff"
+        )
         print("help, history, clear, undo, redo, save, load, exit\n")
 
     def show_history(self):
@@ -128,7 +131,7 @@ class Calculator:
                 print("Goodbye!")
                 break
 
-            # LBYL: check if command is known before acting
+            # LBYL: check whether the command is known before acting
             if InputValidator.is_valid_command(command):
                 self.handle_command(command)
                 continue
@@ -138,7 +141,7 @@ class Calculator:
                 continue
 
             try:
-                # EAFP: attempt conversion and calculation, handle failure
+                # EAFP: attempt the calculation and handle errors if needed
                 first_value = input("Enter first number: ")
                 second_value = input("Enter second number: ")
 

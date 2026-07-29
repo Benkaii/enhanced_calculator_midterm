@@ -8,6 +8,10 @@ from app.operations import (
     DivideOperation,
     PowerOperation,
     RootOperation,
+    ModulusOperation,
+    IntegerDivideOperation,
+    PercentageOperation,
+    AbsoluteDifferenceOperation,
 )
 
 
@@ -20,6 +24,10 @@ from app.operations import (
         (DivideOperation(), 6, 3, 2),
         (PowerOperation(), 2, 3, 8),
         (RootOperation(), 9, 2, 3),
+        (ModulusOperation(), 10, 3, 1),
+        (IntegerDivideOperation(), 10, 3, 3),
+        (PercentageOperation(), 25, 100, 25),
+        (AbsoluteDifferenceOperation(), 10, 4, 6),
     ],
 )
 def test_operations(operation, a, b, expected):
@@ -39,3 +47,18 @@ def test_root_degree_zero():
 def test_even_root_negative_number():
     with pytest.raises(OperationError, match="Cannot take even root of negative number"):
         RootOperation().execute(-9, 2)
+
+
+def test_modulus_by_zero():
+    with pytest.raises(OperationError, match="Cannot calculate modulus by zero"):
+        ModulusOperation().execute(5, 0)
+
+
+def test_integer_divide_by_zero():
+    with pytest.raises(OperationError, match="Cannot divide by zero"):
+        IntegerDivideOperation().execute(5, 0)
+
+
+def test_percentage_by_zero():
+    with pytest.raises(OperationError, match="Cannot calculate percentage with zero"):
+        PercentageOperation().execute(50, 0)
